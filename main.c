@@ -98,7 +98,8 @@ VecFloat2D PixelToPosEstimatorCameraPolarToScreenPos(
   long double Ry = VecGet(that->_param, 1) * 
     (tanl(VecGet(that->_param, 0)) - 
     tanl(VecGet(that->_param, 0) - 
-    atanl((long double)VecGet(polarPos, 1) / (long double)VecGet(&(that->_cameraPos), 1))));
+    atanl((long double)VecGet(polarPos, 1) / 
+    (long double)VecGet(&(that->_cameraPos), 1))));
 
   long double x = VecGet(that->_param, 4) + 
     VecGet(that->_param, 2) * Rx * cos(phi);
@@ -140,7 +141,7 @@ void PixelToPosEstimatorInit(PixelToPosEstimator* const that,
   GAInit(ga);
   float best = 10000.0;
   do {
-    //printf("epoch %ld %fpx     \r", GAGetCurEpoch(ga), best);
+    printf("epoch %ld %fpx     \r", GAGetCurEpoch(ga), best);
     fflush(stdout);
     float ev = 0.0;
     for (int iEnt = 0; iEnt < GAGetNbAdns(ga); ++iEnt) {
@@ -162,14 +163,14 @@ void PixelToPosEstimatorInit(PixelToPosEstimator* const that,
       GASetAdnValue(ga, GAAdn(ga, iEnt), -1.0 * ev);
       if (ev < best - PBMATH_EPSILON) {
         best = ev;
-        /*printf("%lu %f ", GAGetCurEpoch(ga), 
+        printf("%lu %f ", GAGetCurEpoch(ga), 
           best / (float)GSetNbElem(posMeter));
         VecFloatPrint(that->_param, stdout, 6);
-        printf("        \n"); fflush(stdout);*/
+        printf("        \n"); fflush(stdout);
       }
     }
     GAStep(ga);
-  } while (GAGetCurEpoch(ga) < 10000 && best > PBMATH_EPSILON);
+  } while (GAGetCurEpoch(ga) < 1000000 && best > PBMATH_EPSILON);
   VecCopy(that->_param, GAAdnAdnF(GABestAdn(ga)));
 
   GenAlgFree(&ga);
@@ -236,9 +237,10 @@ int main(int argc, char** argv) {
   // Size of one side of the ground
   float groundSize = 27.431;
   // Variables to memorize the position of the bases in meter and pixel
-  int nbBase = 4;
-  VecFloat3D basesPosMeter[4];
-  VecFloat2D basesPosPixel[4];
+  const int nbBase = 4;
+  #define NBDATA 7
+  VecFloat3D basesPosMeter[NBDATA];
+  VecFloat2D basesPosPixel[NBDATA];
   for (int iBase = nbBase; iBase--;) {
     basesPosMeter[iBase] = VecFloatCreateStatic3D();
     basesPosPixel[iBase] = VecFloatCreateStatic2D();
@@ -249,6 +251,12 @@ int main(int argc, char** argv) {
   VecSet(basesPosMeter + 2, 2, 2.0 * d);
   VecSet(basesPosMeter + 3, 0, -d);
   VecSet(basesPosMeter + 3, 2, d);
+  VecSet(basesPosMeter + 4, 0, -5);
+  VecSet(basesPosMeter + 4, 2, -20);
+  VecSet(basesPosMeter + 5, 0, -25);
+  VecSet(basesPosMeter + 5, 2, -10);
+  VecSet(basesPosMeter + 6, 0, 35);
+  VecSet(basesPosMeter + 6, 2, 50);
   VecSet(basesPosPixel, 0, 614);
   VecSet(basesPosPixel, 1, 492);
   VecSet(basesPosPixel + 1, 0, 824);
@@ -257,6 +265,12 @@ int main(int argc, char** argv) {
   VecSet(basesPosPixel + 2, 1, 405);
   VecSet(basesPosPixel + 3, 0, 427);
   VecSet(basesPosPixel + 3, 1, 436);
+  VecSet(basesPosPixel + 4, 0, 473);
+  VecSet(basesPosPixel + 4, 1, 620);
+  VecSet(basesPosPixel + 5, 0, 170);
+  VecSet(basesPosPixel + 5, 1, 538);
+  VecSet(basesPosPixel + 6, 0, 884);
+  VecSet(basesPosPixel + 6, 1, 394);
   // Variable to memorize the position of the camera
   VecFloat3D posCamera = VecFloatCreateStatic3D();
   VecSet(&posCamera, 0, 2.75);
@@ -267,8 +281,9 @@ int main(int argc, char** argv) {
   VecSet(&imgSize, 0, 1280);
   VecSet(&imgSize, 1, 720);
   // Variable to memorize the name of the bases
-  const char* baseName[4] = 
-    {"Home base", "1st base", "2nd base", "3rd base"};
+  const char* baseName[NBDATA] = 
+    {"Home base", "1st base", "2nd base", "3rd base",
+      "Test1", "Test2", "Test3"};
   // Approximated position of the POV
   float a = (VecGet(&imgSize, 0) * 0.5 - VecGet(basesPosPixel + 3, 0)) /
     (VecGet(basesPosPixel + 1, 0) - VecGet(basesPosPixel + 3, 0));
@@ -278,15 +293,6 @@ int main(int argc, char** argv) {
   // Create the estimator
   PixelToPosEstimator estimator = 
     PixelToPosEstimatorCreateStatic(&posCamera, &imgSize, &povPos);
-  // Calculate the projection parameters
-  GSet posMeter = GSetCreateStatic();
-  GSet posPixel = GSetCreateStatic();
-  for (int iBase = nbBase; iBase--;) {
-    GSetAppend(&posMeter, basesPosMeter + iBase);
-    GSetAppend(&posPixel, basesPosPixel + iBase);
-  }
-  PixelToPosEstimatorInit(&estimator, &posMeter, &posPixel);
-  
   // Display the input values
   printf("Camera(m): "); VecPrint(&posCamera, stdout); printf("\n");
   for (int iBase = 0; iBase < nbBase; ++iBase) {
@@ -297,6 +303,25 @@ int main(int argc, char** argv) {
     printf("\n");
   }
   printf("POV(m): "); VecPrint(&povPos, stdout); printf("\n");
+  // Calculate the projection parameters
+  printf("Calculate the projection param...\n");
+
+  /*GSet posMeter = GSetCreateStatic();
+  GSet posPixel = GSetCreateStatic();
+  for (int iBase = NBDATA; iBase--;) {
+    GSetAppend(&posMeter, basesPosMeter + iBase);
+    GSetAppend(&posPixel, basesPosPixel + iBase);
+  }
+  PixelToPosEstimatorInit(&estimator, &posMeter, &posPixel);*/
+  
+  float param[6] = {0.785406,80.543961,10.155653,6.049213,624.139771,1233.761353};
+  for (int iParam = 6; iParam--;) {
+    VecSet(estimator._param, iParam, param[iParam]);
+  }
+  
+  printf("Projection param: ");
+  VecPrint(estimator._param, stdout);printf("\n");
+  
   for (int iBase = 0; iBase < nbBase; ++iBase) {
     printf("%s (polar): ", baseName[iBase]); 
     VecFloat2D polarPos = PixelToPosEstimatorRealPosToCameraPolar(
@@ -319,8 +344,6 @@ int main(int argc, char** argv) {
     printf(" (error): %fpx", errorScreenDist); 
     printf("\n");
   }
-  printf("Projection param: ");
-  VecPrint(estimator._param, stdout);printf("\n");
   for (int iBase = 0; iBase < nbBase; ++iBase) {
     printf("%s (screen->real): ", baseName[iBase]); 
     VecFloat3D estimPos = PixelToPosEstimatorGetPosPxToMeter(
@@ -331,6 +354,17 @@ int main(int argc, char** argv) {
     printf("\n");
   }
 
+  /*VecFloat3D v = VecFloatCreateStatic3D();
+  for (int z = -10; z <= 30; z += 1) {
+    VecSet(&v, 2, z);
+    VecFloat2D polarPos = PixelToPosEstimatorRealPosToCameraPolar(
+      &estimator, &v);
+    VecFloat3D estimPos = PixelToPosEstimatorGetPosPxToMeter(
+      &estimator, );
+    float error = VecDist(&estimPos, v);
+    printf("%f %f\n", z, error);
+  }*/
+  
   // Free memory
   PixelToPosEstimatorFreeStatic(&estimator);
   
