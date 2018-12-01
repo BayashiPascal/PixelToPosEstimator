@@ -2,7 +2,7 @@
 # 0: development (max safety, no optimisation)
 # 1: release (min safety, optimisation)
 # 2: fast and furious (no safety, optimisation)
-BUILD_MODE?=0
+BUILD_MODE?=1
 
 all: pbmake_wget main
 	
@@ -15,15 +15,15 @@ MAKEFILE_INC=../PBMake/Makefile.inc
 include $(MAKEFILE_INC)
 
 # Rules to make the executable
-repo=pixeltoposestimator
-$($(repo)_EXENAME): \
-		$($(repo)_EXENAME).o \
-		$($(repo)_EXE_DEP) \
-		$($(repo)_DEP)
-	$(COMPILER) `echo "$($(repo)_EXE_DEP) $($(repo)_EXENAME).o" | tr ' ' '\n' | sort -u` $(LINK_ARG) $($(repo)_LINK_ARG) -o $($(repo)_EXENAME) 
+main: \
+		main.o \
+		$(genalg_EXE_DEP) \
+		$(genalg_DEP)
+	$(COMPILER) `echo "$(genalg_EXE_DEP) main.o" | tr ' ' '\n' | sort -u` $(LINK_ARG) $(genalg_LINK_ARG) -o main 
 	
-$($(repo)_EXENAME).o: \
-		$($(repo)_DIR)/$($(repo)_EXENAME).c \
-		$($(repo)_INC_H_EXE) \
-		$($(repo)_EXE_DEP)
-	$(COMPILER) $(BUILD_ARG) $($(repo)_BUILD_ARG) `echo "$($(repo)_INC_DIR)" | tr ' ' '\n' | sort -u` -c $($(repo)_DIR)/$($(repo)_EXENAME).c
+main.o: \
+		main.c \
+		$(genalg_INC_H_EXE) \
+		$(genalg_EXE_DEP)
+	$(COMPILER) $(BUILD_ARG) $(genalg_BUILD_ARG) `echo "$(genalg_INC_DIR)" | tr ' ' '\n' | sort -u` -c main.c
+	
