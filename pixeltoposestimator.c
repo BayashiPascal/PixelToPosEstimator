@@ -56,7 +56,7 @@ VecFloat3D PTPEGetPolarToMeter(
   VecFloat3D P = VecFloatCreateStatic3D();
   VecSet(&P, 0, PTPE_Px(that));
   VecSet(&P, 1, PTPE_Py(that));
-  VecSet(&P, 2, 0.0);
+  VecSet(&P, 2, PTPE_Pz(that));
   // Normalized vector Camera->POV
   VecFloat3D CP = VecGetOp(&P, 1.0, &(that->_cameraPos), -1.0);
   VecNormalise(&CP);
@@ -118,11 +118,14 @@ VecFloat2D PTPEGetPxToPolar(
 }
 
 // Calculate the projection parameter using genetic algorithm for
-// 'nbEpoch' eochs or until the average error gets below 'prec'
+// 'nbEpoch' epochs or until the average error gets below 'prec'
+// Search for the parameters Px, Py, Pz in the bounding box defined
+// by POVmin-POVmax
 // the random generator must be initialized before calling this function
 void PTPEInit(PixelToPosEstimator* const that,
   const GSet* const posMeter, const GSet* const posPixel, 
-  const unsigned int nbEpoch, const float prec) {
+  const unsigned int nbEpoch, const float prec,
+  const VecFloat3D* const POVmin, const VecFloat3D* const POVmax) {
 #if BUILDMODE == 0
   if (that == NULL) {
     ELORankErr->_type = PBErrTypeNullPointer;
@@ -146,6 +149,16 @@ void PTPEInit(PixelToPosEstimator* const that,
       GSetNbElem(posPixel), GSetNbElem(posMeter));
     PBErrCatch(PixelToPosEstimatorErr);
   }
+  if (POVmin == NULL) {
+    ELORankErr->_type = PBErrTypeNullPointer;
+    sprintf(ELORankErr->_msg, "'POVmin' is null");
+    PBErrCatch(PixelToPosEstimatorErr);
+  }
+  if (POVmax == NULL) {
+    ELORankErr->_type = PBErrTypeNullPointer;
+    sprintf(ELORankErr->_msg, "'POVmax' is null");
+    PBErrCatch(PixelToPosEstimatorErr);
+  }
 #endif
   // Create the GenAlg
   int lengthAdnF = PTPE_NBPARAM;
@@ -154,20 +167,25 @@ void PTPEInit(PixelToPosEstimator* const that,
     lengthAdnF, lengthAdnI);
   // Set the boundaries for the parameters
   VecFloat2D boundsF = VecFloatCreateStatic2D();
-  VecSet(&boundsF, 0, 0.0); VecSet(&boundsF, 1, 10.0);
+  VecSet(&boundsF, 0, VecGet(POVmin, 0)); 
+  VecSet(&boundsF, 1, VecGet(POVmax, 0));
   GASetBoundsAdnFloat(ga, 0, &boundsF); // Px
-  VecSet(&boundsF, 0, 0.0); VecSet(&boundsF, 1, 20.0);
+  VecSet(&boundsF, 0, VecGet(POVmin, 1)); 
+  VecSet(&boundsF, 1, VecGet(POVmax, 1));
   GASetBoundsAdnFloat(ga, 1, &boundsF); // Py
+  VecSet(&boundsF, 0, VecGet(POVmin, 2)); 
+  VecSet(&boundsF, 1, VecGet(POVmax, 2));
+  GASetBoundsAdnFloat(ga, 2, &boundsF); // Pz
   VecSet(&boundsF, 0, -PBMATH_HALFPI); 
   VecSet(&boundsF, 1, PBMATH_HALFPI);
-  GASetBoundsAdnFloat(ga, 2, &boundsF); // Sx
-  GASetBoundsAdnFloat(ga, 3, &boundsF); // Sy
+  GASetBoundsAdnFloat(ga, 3, &boundsF); // Sx
+  GASetBoundsAdnFloat(ga, 4, &boundsF); // Sy
   VecSet(&boundsF, 0, -1.0); VecSet(&boundsF, 1, 1.0);
-  GASetBoundsAdnFloat(ga, 4, &boundsF); // Upx
+  GASetBoundsAdnFloat(ga, 5, &boundsF); // Upx
   VecSet(&boundsF, 0, 0.0); VecSet(&boundsF, 1, 1.0);
-  GASetBoundsAdnFloat(ga, 5, &boundsF); // Upy
+  GASetBoundsAdnFloat(ga, 6, &boundsF); // Upy
   VecSet(&boundsF, 0, -1.0); VecSet(&boundsF, 1, 1.0);
-  GASetBoundsAdnFloat(ga, 6, &boundsF); // Upz
+  GASetBoundsAdnFloat(ga, 7, &boundsF); // Upz
   // Init the GenAlg
   GAInit(ga);
   // Variable to memorize the current best adn value
@@ -207,9 +225,9 @@ void PTPEInit(PixelToPosEstimator* const that,
       // Update the best value if necessary
       if (ev < best - PBMATH_EPSILON) {
         best = ev;
-        //printf("%lu %f ", GAGetCurEpoch(ga), best);
-        //VecFloatPrint(that->_param, stdout, 6);
-        //printf("        \n"); fflush(stdout);
+        printf("%lu %f ", GAGetCurEpoch(ga), best);
+        VecFloatPrint(that->_param, stdout, 6);
+        printf("        \n"); fflush(stdout);
       }
     }
     // Step the GenAlg

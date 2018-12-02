@@ -19,13 +19,14 @@
 
 #define PTPE_Px(that) VecGet(that->_param, 0)
 #define PTPE_Py(that) VecGet(that->_param, 1)
-#define PTPE_Sx(that) VecGet(that->_param, 2)
-#define PTPE_Sy(that) VecGet(that->_param, 3)
-#define PTPE_Upx(that) VecGet(that->_param, 4)
-#define PTPE_Upy(that) VecGet(that->_param, 5)
-#define PTPE_Upz(that) VecGet(that->_param, 6)
+#define PTPE_Pz(that) VecGet(that->_param, 2)
+#define PTPE_Sx(that) VecGet(that->_param, 3)
+#define PTPE_Sy(that) VecGet(that->_param, 4)
+#define PTPE_Upx(that) VecGet(that->_param, 5)
+#define PTPE_Upy(that) VecGet(that->_param, 6)
+#define PTPE_Upz(that) VecGet(that->_param, 7)
 
-#define PTPE_NBPARAM 7
+#define PTPE_NBPARAM 8
 
 // ------------- PixelToPosEstimator
 
@@ -37,7 +38,7 @@ typedef struct PixelToPosEstimator {
   // Dimension of the image
   VecFloat2D _imgSize;
   // Projection parameters
-  // (Px, Py, Sx, Sy, Upx, Upy, Upz)
+  // (Px, Py, Pz, Sx, Sy, Upx, Upy, Upz)
   VecFloat* _param;
 } PixelToPosEstimator;
 
@@ -56,11 +57,14 @@ VecFloat2D PTPEGetPxToPolar(
   const VecFloat2D* const screenPos);
 
 // Calculate the projection parameter using genetic algorithm for
-// 'nbEpoch' eochs or until the average error gets below 'prec'
+// 'nbEpoch' epochs or until the average error gets below 'prec'
+// Search for the parameters Px, Py, Pz in the bounding box defined
+// by POVmin-POVmax
 // the random generator must be initialized before calling this function
 void PTPEInit(PixelToPosEstimator* const that,
   const GSet* const posMeter, const GSet* const posPixel, 
-  const unsigned int nbEpoch, const float prec);
+  const unsigned int nbEpoch, const float prec,
+  const VecFloat3D* const POVmin, const VecFloat3D* const POVmax);
 
 // Convert the screen position to a real position
 VecFloat3D PTPEGetPxToMeter(
