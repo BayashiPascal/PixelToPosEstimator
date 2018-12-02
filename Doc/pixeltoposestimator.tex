@@ -29,7 +29,7 @@ Lets now consider the projection of the screen on $\mathcal{S}$ the unit sphere 
 if we note $\alpha$ and $\beta$ the angle of view of the camera along respectively $\overrightarrow{x}$ and $\overrightarrow{y}$, $\overrightarrow{P_{\mathcal{S}}}$ the projection of 
 $\overrightarrow{S}$ on $\mathcal{S}$ is calculated as follow:\\
 \begin{equation}
-\overrightarrow{P'_{\mathcal{S}}}=Rot_{\overrightarrow{up}}(\overrightarrow{depth},\alpha P_x)+Rot_{\overrightarrow{right}}(\overrightarrow{depth},\beta P_y)-\overrightarrow{depth}
+\overrightarrow{P'_{\mathcal{S}}}=Rot_{\overrightarrow{up}}(\overrightarrow{depth},\alpha P_u)+Rot_{\overrightarrow{right}}(\overrightarrow{depth},\beta P_v)-\overrightarrow{depth}
 \end{equation}
 \begin{equation}
 \overrightarrow{P_{\mathcal{S}}}=\frac{\overrightarrow{P'_{\mathcal{S}}}}{||\overrightarrow{P'_{\mathcal{S}}}||}\\
@@ -58,12 +58,12 @@ However, this function relies on several unknown values:\\
 \item $\overrightarrow{up}$ the up direction in the camera coordinates system. ($\overrightarrow{right}$ is not an unknown as we can calculate it as follow: $\overrightarrow{right}=\overrightarrow{depth}*\overrightarrow{up}$)
 \end{itemize}
 
-Then, given $\mathcal{I}$ the set of points for which we know both the 3D coordinates and 2D coordinates, we approximate these unknown values by solving the minimization problem:\\
+Then, given $\mathcal{P}$ the set of points for which we know both the 3D coordinates and 2D coordinates, we approximate these unknown values by solving the minimization problem:\\
 \begin{equation}
 \left\lbrace
 \begin{array}{l}
 {V_x,V_y,V_z,\alpha,\beta,up_x,up_y,up_z}\in\mathbb{R}^8\\
-Min_{(\mathcal{I},\overrightarrow{V},\alpha,\beta,\overrightarrow{up})}(\frac{1}{\mathcal{I}^*}\sum_{i\in\mathcal{I}}||\overrightarrow{R_i}-F_{(\overrightarrow{V},\alpha,\beta,\overrightarrow{up})}(\overrightarrow{S_i})||)\\
+Min_{(\mathcal{P},\overrightarrow{V},\alpha,\beta,\overrightarrow{up})}(\frac{1}{\mathcal{P}^*}\sum_{p\in\mathcal{P}}||\overrightarrow{R_p}-F_{(\overrightarrow{V},\alpha,\beta,\overrightarrow{up})}(\overrightarrow{S_p})||)\\
 \end{array}
 \right.
 \end{equation}
