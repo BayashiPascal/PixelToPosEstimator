@@ -5,13 +5,13 @@ PixelToPosEstimator PixelToPosEstimatorCreateStatic(
   VecFloat3D* posCamera, const VecFloat2D* const imgSize) {
 #if BUILDMODE == 0
   if (posCamera == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'posCamera' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'posCamera' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (imgSize == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'imgSize' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'imgSize' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
 #endif
@@ -38,13 +38,13 @@ VecFloat3D PTPEGetPolarToMeter(
   const VecFloat2D* const polarPos) {
 #if BUILDMODE == 0
   if (that == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'that' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'that' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (polarPos == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'polarPos' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'polarPos' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
 #endif
@@ -96,13 +96,13 @@ VecFloat2D PTPEGetPxToPolar(
   const VecFloat2D* const screenPos) {
 #if BUILDMODE == 0
   if (that == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'that' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'that' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (screenPos == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'screenPos' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'screenPos' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
 #endif
@@ -128,35 +128,42 @@ void PTPEInit(PixelToPosEstimator* const that,
   const VecFloat3D* const POVmin, const VecFloat3D* const POVmax) {
 #if BUILDMODE == 0
   if (that == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'that' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'that' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (posMeter == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'posMeter' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'posMeter' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (posPixel == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'posPixel' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'posPixel' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (GSetNbElem(posPixel) != GSetNbElem(posMeter)) {
-    ELORankErr->_type = PBErrTypeInvalidArg;
-    sprintf(ELORankErr->_msg, 
+    PixelToPosEstimatorErr->_type = PBErrTypeInvalidArg;
+    sprintf(PixelToPosEstimatorErr->_msg, 
       "'posPixel' and 'posMeter' don't have same sizes (%ld==%ld)",
       GSetNbElem(posPixel), GSetNbElem(posMeter));
     PBErrCatch(PixelToPosEstimatorErr);
   }
+  if (GSetNbElem(posPixel) <= 2) {
+    PixelToPosEstimatorErr->_type = PBErrTypeInvalidArg;
+    sprintf(PixelToPosEstimatorErr->_msg, 
+      "'posPixel' and 'posMeter' don't have enough elements (%ld>2)",
+      GSetNbElem(posPixel));
+    PBErrCatch(PixelToPosEstimatorErr);
+  }
   if (POVmin == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'POVmin' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'POVmin' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (POVmax == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'POVmax' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'POVmax' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
 #endif
@@ -245,13 +252,13 @@ VecFloat3D PTPEGetPxToMeter(
   const VecFloat2D* const screenPos) {
 #if BUILDMODE == 0
   if (that == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'that' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'that' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
   if (screenPos == NULL) {
-    ELORankErr->_type = PBErrTypeNullPointer;
-    sprintf(ELORankErr->_msg, "'screenPos' is null");
+    PixelToPosEstimatorErr->_type = PBErrTypeNullPointer;
+    sprintf(PixelToPosEstimatorErr->_msg, "'screenPos' is null");
     PBErrCatch(PixelToPosEstimatorErr);
   }
 #endif
